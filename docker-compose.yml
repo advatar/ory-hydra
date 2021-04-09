@@ -1,0 +1,36 @@
+version: '3'
+networks:
+  hydraguide:
+services:
+  postgres:
+    container_name:
+      ory-hydra-example--postgres
+    networks:
+      - hydraguide
+    image: postgres:9.6 # use latest official postgres version
+    env_file:
+      - database.env # configure postgres
+    volumes:
+      - ./host-folder/:/var/lib/postgresql/data/
+  hydra:
+    container_name:
+      ory-hydra-example--hydra
+    networks:
+      - hydraguide
+    image: oryd/hydra:v1.10.1
+    ports: 
+      - 9000:4444
+      - 9001:4445
+    env_file:
+      - hydra.env
+    command: [migrate sql --yes $DSN,serve all --dangerous-force-http']
+  login:
+    networks:
+      - hydraguide
+    container_name:
+      ory-hydra-example--consent
+    env_file:
+      - login.env
+    image: oryd/hydra-login-consent-node:v1.4.2
+    ports: 
+      - 9020:3000
